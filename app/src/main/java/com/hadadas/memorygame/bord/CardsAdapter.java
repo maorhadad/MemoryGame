@@ -15,7 +15,7 @@ import com.hadadas.memorygame.R;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CardsAdapter extends RecyclerView.Adapter<CardsAdapter.MyViewHolder> {
+public class CardsAdapter extends RecyclerView.Adapter<CardsAdapter.CardViewHolder> {
 
     private List<Card> cards;
     private ItemClickListener mClickListener;
@@ -24,7 +24,16 @@ public class CardsAdapter extends RecyclerView.Adapter<CardsAdapter.MyViewHolder
     public CardsAdapter(Context context, List<Integer> uniqueIds) {
         this.mInflater = LayoutInflater.from(context);
         this.cards = initCardsFromIds(uniqueIds);
-        this.cards.addAll(cards);
+        this.cards.addAll(duplicateList());
+    }
+
+    private List<Card> duplicateList(){
+        List<Card> dupCards = new ArrayList<>();
+        for (Card card: cards) {
+            Card tempCard = new Card(card);
+            dupCards.add(tempCard);
+        }
+        return dupCards;
     }
 
     private List<Card> initCardsFromIds(List<Integer> uniqueIds){
@@ -38,14 +47,14 @@ public class CardsAdapter extends RecyclerView.Adapter<CardsAdapter.MyViewHolder
     }
 
     @Override
-    public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public CardViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = mInflater.inflate(R.layout.card, parent, false);
 
-        return new MyViewHolder(itemView);
+        return new CardViewHolder(itemView);
     }
 
     @Override
-    public void onBindViewHolder(MyViewHolder holder, int position) {
+    public void onBindViewHolder(CardViewHolder holder, int position) {
         Card card = cards.get(position);
         if(card.isFront()){
             setCardFront(holder, card );
@@ -56,7 +65,7 @@ public class CardsAdapter extends RecyclerView.Adapter<CardsAdapter.MyViewHolder
         }
     }
 
-    private void setCardFront(MyViewHolder holder, Card card){
+    private void setCardFront(CardViewHolder holder, Card card){
         LinearLayout llBack = holder.itemView.findViewById(R.id.back);
         RelativeLayout RlFront = holder.itemView.findViewById(R.id.front);
 
@@ -64,7 +73,7 @@ public class CardsAdapter extends RecyclerView.Adapter<CardsAdapter.MyViewHolder
         RlFront.setVisibility(View.VISIBLE);
     }
 
-    private void setCardBack(MyViewHolder holder, Card card){
+    private void setCardBack(CardViewHolder holder, Card card){
         LinearLayout llBack = holder.itemView.findViewById(R.id.back);
         RelativeLayout RlFront = holder.itemView.findViewById(R.id.front);
 
@@ -91,11 +100,11 @@ public class CardsAdapter extends RecyclerView.Adapter<CardsAdapter.MyViewHolder
         void onItemClick(View view, int position);
     }
 
-    public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class CardViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         public TextView title;
 
 
-        public MyViewHolder(View itemView) {
+        public CardViewHolder(View itemView) {
             super(itemView);
             title = itemView.findViewById(R.id.info_text);
             itemView.setOnClickListener(this);

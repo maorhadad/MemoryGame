@@ -1,7 +1,9 @@
 package com.hadadas.memorygame;
 
+import android.os.Handler;
 import android.util.Log;
 
+import com.hadadas.memorygame.bord.Card;
 import com.hadadas.memorygame.retrofit.CharacterResponse;
 import com.hadadas.memorygame.retrofit.RickNMortyService;
 
@@ -20,10 +22,13 @@ public class Game {
 
     private static final int NUM_OF_PAIRS = 50;
     private final GameCallBacks gameCallBacks;
-    Retrofit retrofit;
-    private int count;
+    private Retrofit retrofit;
+    private int characterCount;
+    private List<Integer> uniqueIds;
+    private int attempsCounter;
 
-    List<Integer> uniqueIds;
+    private Card flippedCards [];
+    private int currentFlipHandCounter;
 
     public Game(GameCallBacks gameCallBacks) {
         this.gameCallBacks = gameCallBacks;
@@ -31,7 +36,28 @@ public class Game {
     }
 
     public void initialize() {
+        resetAttemptsCounter();
+        resetCurrentFlippedCards();
         initRetrofit();
+    }
+
+    private void reset(){
+        Log.d(TAG, "reset");
+        resetAttemptsCounter();
+        resetCurrentFlippedCards();
+        generateUniqueIds();
+    }
+
+    private void resetFlippedHandCounter(){
+        currentFlipHandCounter = 0;
+    }
+
+    private void resetCurrentFlippedCards(){
+        flippedCards = new Card[2];
+    }
+
+    private void resetAttemptsCounter(){
+        attempsCounter = 0;
     }
 
     void initRetrofit() {
@@ -41,7 +67,7 @@ public class Game {
                 .build();
     }
 
-    void getCharactersCount() {
+    void getCharactersCountRequest() {
         RickNMortyService service = retrofit.create(RickNMortyService.class);
         try {
             Log.d("Main", "get");
@@ -50,8 +76,8 @@ public class Game {
             info.enqueue(new Callback<CharacterResponse>() {
                 @Override
                 public void onResponse(Call<CharacterResponse> call, Response<CharacterResponse> response) {
-                    count = response.body().info.getCount();
-                    gameCallBacks.onGetCountSuccess(count);
+                    characterCount = response.body().info.getCount();
+                    gameCallBacks.onGetCountSuccess(characterCount);
                 }
 
                 @Override
@@ -74,10 +100,10 @@ public class Game {
         return random;
     }
 
-    void generateUniqueIds(int max) {
+    void generateUniqueIds() {
         uniqueIds = new ArrayList<>();
         while (uniqueIds.size() < NUM_OF_PAIRS) {
-            int id = generateUniqueNumberWithRange(count);
+            int id = generateUniqueNumberWithRange(characterCount);
             if(!uniqueIds.contains(id)){
                 uniqueIds.add(id);
             }
@@ -86,12 +112,54 @@ public class Game {
         gameCallBacks.onFinishUniqueIds();
     }
 
-    public int getCount(){
-        return count;
+    public int getCharacterCount(){
+        return characterCount;
     }
 
 
     public List<Integer> getUniqueIds() {
         return uniqueIds;
+    }
+
+    public void cardHasFlipped(Card card, int position) {
+        setCardFlipped(card, position);
+        checkForMatch();
+    }
+
+    private void setCardFlipped(Card card, int position){
+        card.setPosition(position);
+        flippedCards[currentFlipHandCounter] = card;
+        currentFlipHandCounter++;
+    }
+
+    private void checkForMatch(){
+        if(currentFlipHandCounter < 2){
+            return;
+        }
+        resetFlippedHandCounter();
+        if(!flippedCards[0].equals(flippedCards[1])){
+            attempsCounter++;
+            Log.d(TAG, "attempsCounter: " + attempsCounter);
+            if(attempsCounter >= NUM_OF_PAIRS){
+                gameCallBacks.onAttemptsOver();
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        reset();
+                    }
+                }, 1500);
+
+            }else{
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        gameCallBacks.onFailAttempt(flippedCards);
+                    }
+                }, 1500);
+            }
+
+        }else{
+            gameCallBacks.onMatchFound();
+        }
     }
 }

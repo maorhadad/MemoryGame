@@ -12,6 +12,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.hadadas.memorygame.bord.Card;
 import com.hadadas.memorygame.bord.CardsAdapter;
 
 
@@ -29,7 +30,7 @@ public class MainActivity extends AppCompatActivity implements GameCallBacks, Ca
         setSupportActionBar(toolbar);
 
         game = new Game(this);
-        game.getCharactersCount();
+        game.getCharactersCountRequest();
 
     }
 
@@ -67,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements GameCallBacks, Ca
 
     @Override
     public void onGetCountSuccess(int count) {
-        game.generateUniqueIds(count);
+        game.generateUniqueIds();
     }
 
     @Override
@@ -82,10 +83,32 @@ public class MainActivity extends AppCompatActivity implements GameCallBacks, Ca
     }
 
     @Override
+    public void onFailAttempt(Card[] cardsToFlipBack) {
+        for(Card c : cardsToFlipBack){
+            int position = c.getPosition();
+            adapter.getItem(position).toggle();
+            adapter.notifyItemChanged(position);
+        }
+
+    }
+
+    @Override
+    public void onMatchFound() {
+        Toast.makeText(this, "Owoooooo", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onAttemptsOver() {
+        Toast.makeText(this, "Game Over", Toast.LENGTH_SHORT).show();
+    }
+
+
+    @Override
     public void onItemClick(View view, int position) {
         Log.i("TAG", "You clicked number " + adapter.getItem(position).isFront() + ", which is at cell position " + position);
         adapter.getItem(position).toggle();
         adapter.notifyItemChanged(position);
+        game.cardHasFlipped(adapter.getItem(position), position);
 
     }
 }

@@ -8,7 +8,6 @@ import com.hadadas.memorygame.retrofit.RickNMortyService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -22,7 +21,8 @@ public class Game {
     private static final int NUM_OF_PAIRS = 50;
     private final GameCallBacks gameCallBacks;
     Retrofit retrofit;
-    int count;
+    private int count;
+
     List<Integer> uniqueIds;
 
     public Game(GameCallBacks gameCallBacks) {
@@ -68,7 +68,7 @@ public class Game {
         }
     }
 
-    int generateUniqueNumberWithRange(int max) {
+    private int generateUniqueNumberWithRange(int max) {
         int min = 0;
         int random = new Random().nextInt((max - min) + 1) + min;
         return random;
@@ -82,7 +82,16 @@ public class Game {
                 uniqueIds.add(id);
             }
         }
-        Log.d(TAG, "uniqueIds :" + uniqueIds.size());
-        gameCallBacks.onFinishUniqeIds();
+        Log.d(TAG, "uniqueIds :" + String.valueOf(uniqueIds));
+        gameCallBacks.onFinishUniqueIds();
+    }
+
+    public int getCount(){
+        return count;
+    }
+
+
+    public List<Integer> getUniqueIds() {
+        return uniqueIds;
     }
 }
